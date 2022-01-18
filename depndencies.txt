@@ -1,2 +1,3 @@
 pymongo-4.0.1
- python-dotenv
+python-dotenv
+pyca
