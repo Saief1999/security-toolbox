@@ -1,3 +1,5 @@
+from cryptography.hazmat.backends import default_backend
+
 from encryption import Encryption
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives import padding
@@ -26,15 +28,15 @@ class TripleDESEncryption(Encryption):
     Message size : Needs to be multiple of Block Size (padding using PKCS7)
     """
     def __init__(self, passphrase:str=None, iv=None):
+        #self.key = b'12345689'
         self.key = self.key_stretch(passphrase)
-        # self.key = passphrase.encode("utf-8")
         if iv is None:
             iv = os.urandom(8)
         self.iv = iv
         # Error with iv ( Invalid Size )
         # algorithm = algorithms.TripleDES(self.key)
         # print(f"Block Size: {algorithm.block_size}")
-        self.cipher = Cipher(algorithms.TripleDES(self.key), modes.CBC(self.iv))
+        self.cipher = Cipher(algorithms.TripleDES(self.key), modes.CBC(self.iv),backend=default_backend())
 
         self.encryptor = self.cipher.encryptor() # Used to encrypt
         self.decryptor = self.cipher.decryptor() # Used to decrypt
@@ -146,7 +148,7 @@ if __name__ == "__main__":
 
 
     # TripleDES Test
-    encryptor = TripleDESEncryption(passphrase= '0'*24) # Passphrase Size : 72
+    encryptor = TripleDESEncryption(passphrase= "1234") # Passphrase Size : 72
     encrypted,iv = encryptor.encrypt("secret") # Msg Size : 40
-    encryptor2 = AESEncryption(passphrase= "TestTestt", iv=iv)
-    print(f"{encrypted.hex()}:{encryptor2.decrypt(encrypted,iv)}")
+    encryptor2 = AESEncryption(passphrase= "TestTestt")
+    print(f"{encrypted.hex()}:{encryptor.decrypt(encrypted,iv)}")

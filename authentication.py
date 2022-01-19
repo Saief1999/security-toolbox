@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pyclbr import Function
 import re
 from getpass import getpass

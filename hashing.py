@@ -5,7 +5,9 @@ class Hashing(ABC):
     def __init__(self,hash_function):
         self.hash_function=hash_function
         pass
-    def hash(self,msg:str,*args,**kwargs)->bytes:
+    def __call__(self,msg:str)->bytes:
+        return self.hash(msg)
+    def hash(self,msg:str)->bytes:
         digest = hashes.Hash(self.hash_function)
         digest.update(msg.encode("utf-8"))
         return digest.finalize()
@@ -26,7 +28,7 @@ class MD5Hash(Hashing):
 
 if __name__ == "__main__":
     for hash in [SHA1Hash(),SHA256Hash(),MD5Hash()]:
-        print(hash.hash("Hello World").hex())
+        print(hash("Hello World").hex())
 
 """
 Expected Output:
