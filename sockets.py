@@ -1,4 +1,9 @@
 import socket
+
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives._serialization import Encoding, PublicFormat
+from cryptography.hazmat.primitives.serialization import load_pem_public_key
+
 from asymmetric_encryption import DiffieHellmanExchange,DiffieHellmanExchange1024, DiffieHellmanExchange2048
 from symmetric_encryption import AESEncryption
 import time
@@ -17,7 +22,7 @@ class Connection:
             self.receiving_thread=threading.Thread(target=Connection.receive_connection,args=(self,))
 
     def create_session(self):
-        self.encrypter= AESEncryption(self.shared_key)
+        self.encrypter= AESEncryption(self.shared_key.hex())
         pass
 
     def receive_connection(self):
@@ -27,42 +32,53 @@ class Connection:
         self.sending_socket,self.client_ip = self.receiving_socket.accept()
         accept_decision=""
         while accept_decision not in {'Y','N'}:
-            accept_decision=input(f"Do you want to accept a connection from {self.other_ip}? [Y/N]")
+            accept_decision=input(f"Do you want to accept a connection from {self.client_ip}? [Y/N]")
         if accept_decision == 'N':
             pass
-        received_key=self.sending_socket.recv(1024)
+        received_key=load_pem_public_key(self.sending_socket.recv(2048), default_backend())
         self.shared_key=self.priv.shared_key(received_key)
         
-        self.sending_socket.send(self.priv.public_key())
+        self.sending_socket.send(self.priv.public_key().public_bytes(Encoding.PEM,PublicFormat.SubjectPublicKeyInfo))
         self.create_session()
-        self.sending_thread=threading.Thread(target=Connection.send,args=(self,))
-        self.receive()
+        self.sending_thread=threading.Thread(target=Connection.receive,args=(self,))
+        self.sending_thread.start()
+        self.send()
 
     def emit_connection(self,host,port):
         self.sending_ip=host
         self.sending_port=port
         self.sending_socket = socket.socket()
         self.sending_socket.connect((self.sending_ip, self.sending_port))
-        s.send(self.priv.public_key())
-        receiver_key=s.receive(1024)
+        self.sending_socket.send(self.priv.public_key().public_bytes(Encoding.PEM,PublicFormat.SubjectPublicKeyInfo))
+        receiver_key=load_pem_public_key(self.sending_socket.recv(2048))
         self.shared_key=self.priv.shared_key(receiver_key)
         self.create_session()
-        self.sending_thread=threading.Thread(target=Connection.send,args=(self,))
-        self.receiving_thread=threading.Thread(target=Connection.recieve,args=(self,))
-        
+        self.sending_thread=threading.Thread(target=Connection.receive,args=(self,))
+        self.sending_thread.start()
+        self.send()
+
 
     def receive(self):
+        print("[LOG]: Test")
         while True:
-            received=self.other_connection.receive(1024)
-            split_message=received.decode("ascii").split()
+            received=self.sending_socket.recv(1024)
+            print("[LOG]: "+ received.decode("ascii"))
+            if received.decode("ascii")=="":
+                continue
+            split_message=received.decode("ascii").split(':')
             enc=bytearray.fromhex(split_message[0])
             iv=bytearray.fromhex(split_message[1])
+            self.encrypter.iv=iv
+            print("[IV]: "+iv.hex())
+            print("[ENC]: " + enc.hex())
             print(f"[Him]: {self.encrypter.decrypt(enc,iv)}")
 
     def send(self):
         while True:
             message:str=input("[You]: ")
             enc,iv=self.encrypter.encrypt(message)
+            print("[IV]: "+ iv.hex())
+            print("[ENC]: " + enc.hex())
             sent_message=':'.join([enc.hex(),iv.hex()])
             self.sending_socket.send(sent_message.encode("ascii"))
 
@@ -83,4 +99,5 @@ class Connection:
 #     c.close()
 #     break
 
-connection = Connection(port=12367)
+if __name__=="__main__":
+    connection = Connection(port=12367)

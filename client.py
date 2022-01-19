@@ -10,5 +10,6 @@ import sockets
 # # close the connection
 # s.close()
 
-connection = sockets.Connection(port=1237,wait=False)
-connection.emit_connection(host="localhost",port=12367)
+if __name__=="__main__":
+    connection = sockets.Connection(port=1237,wait=False)
+    connection.emit_connection(host="localhost",port=12367)

@@ -59,7 +59,7 @@ class SecurityToolbox:
 3. SHA256
 """)
         choice=0
-        while choice not in range(1,4):
+        while choice not in {1,2,3}:
             choice = int(input("Choisissez votre choix: "))
         msg:str
         msg=input("Donnez le message à hacher: ")
@@ -74,7 +74,7 @@ class SecurityToolbox:
 3. SHA256
 """)
         choice=0
-        while choice not in range(1,4):
+        while choice not in {1,2,3}:
             choice = int(input("Choisissez votre choix: "))
         msg:str
         msg=input("Donnez le Email haché: ")

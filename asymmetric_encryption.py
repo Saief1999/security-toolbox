@@ -152,7 +152,8 @@ class PublicKeyRSA(Transformer):
 
 class DiffieHellmanExchange:
     def __init__(self,key_size,generator=2):
-            self.private_key=dh.generate_parameters(generator=generator,key_size=key_size)
+            self.parameters=dh.generate_parameters(generator=generator,key_size=key_size)
+            self.private_key=self.parameters.generate_private_key()
     
 
     def public_key(self):
