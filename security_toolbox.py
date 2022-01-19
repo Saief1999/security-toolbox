@@ -24,6 +24,7 @@ class SecurityToolbox:
             choice = int(input("Choisissez votre choix: "))
             if choice == 1:
                 self.authentication.register()
+                print("Passez à l'authentification svp")
                 next = self.start
             elif choice == 2:
                 user:User= self.authentication.login()
@@ -47,10 +48,10 @@ class SecurityToolbox:
         encoder = Base64Encoder()
         if choice == 1:
            msg=input("Donnez le message à coder: ")
-           print(f"Le message codé au format HEX: {encoder.encode(msg).hex()}")
+           print(f"Le message codé à base 64: {encoder.encode(msg).decode('utf-8')}")
         elif choice == 2:
-            msg =input("Donnez le message à décoder au format HEX: ")
-            print(f"Le message décodé est: {encoder.decode(bytearray.fromhex(msg))}")
+            msg =input("Donnez le message à décoder")
+            print(f"Le message décodé de la base 64 est: {encoder.decode(msg.encode('utf-8'))}")
 
     def hashingMenu(self):
         print("""
@@ -127,50 +128,54 @@ class SecurityToolbox:
         algorithm_choice=0
         while algorithm_choice not in {1,2}:
             algorithm_choice = int(input("Choisissez votre choix: "))
-        encryption_choice=0
-        print("""
+        if algorithm_choice == 1:
+            encryption_choice=0
+            print("""
 1. Generation
 2. Encryptage
 3. Decryptage
 4. Signature
 5. Verification
 """)
-        while encryption_choice not in {1,2,3,4,5}:
-            encryption_choice=int(input("Choisissez votre choix: "))
-        if encryption_choice==1:
-            key_size = input("Donner la taille de clé >= 1024")
-            private_key:PrivateKeyRSA = PrivateKeyRSA(key_size)
-            public_key:PublicKeyRSA = private_key.public_key()
-
-            print(f"Private Key (Hex):{private_key.private_key.hex()}")
-            print(f"Private Key (Hex):{public_key.private_key.hex()}")
-
-        elif encryption_choice == 2:
-            msg:str=input("Donnez le message à encrypter: ")
-        elif encryption_choice == 3:
+            while encryption_choice not in {1,2,3,4,5}:
+                encryption_choice=int(input("Choisissez votre choix: "))
+            if encryption_choice==1:
+                key_size = int(input("Donnez la taille de clé >= 1024: "))
+                private_key:PrivateKeyRSA = PrivateKeyRSA(key_size)
+                public_key:PublicKeyRSA = private_key.public_key()
+                dest_priv=input("Donner le nom de fichier de la clé privé [privRSA.pem]: ") or "privRSA.pem"
+                private_key._export(dest_priv)
+                print(f"Clé privé RSA exporté vers {dest_priv}")
+                dest_pub=input("Donner le nom de fichier de la clé publique [pubRSA.pem]: ") or "pubRSA.pem"
+                public_key._export(dest_pub)
+                print(f"Clé publique RSA exporté vers {dest_pub}")
+            elif encryption_choice == 2:
+                msg:str=input("Donnez le message à encrypter: ")
+                src:str=input("Donnez le fichier contenant la clé publique [pubRSA.pem]: ") or "pubRSA.pem"
+                public_key = PublicKeyRSA(src=src)
+                print(f"Le message encrypté au format hex est: {public_key.encrypt(msg.encode('utf-8')).hex()}")
+            elif encryption_choice == 3:
+                msg=bytes(bytearray.fromhex(input("Donnez le message à décrypter au format HEX: ")))
+                src:str=input("Donnez le fichier contenant la clé privé [privRSA.pem]: ") or "privRSA.pem"
+                private_key = PrivateKeyRSA(src=src)
+                print(f"Le message décrypté est: {private_key.decrypt(msg).decode('utf-8')}")
+            elif encryption_choice == 4:
+                msg:str=input("Donnez le message à signer: ")
+                src:str=input("Donnez le fichier contenant la clé privé [privRSA.pem]: ") or "privRSA.pem"
+                private_key = PrivateKeyRSA(src=src)
+                print(f"La signature au format hex est: {private_key.sign(msg.encode('utf-8')).hex()}")
+            elif encryption_choice == 5:
+                signature:bytes=bytes(bytearray.fromhex(input("Donner la signature: ")))
+                msg:str= input("Donnez le message à vérifier: ")
+                src:str=input("Donnez le fichier contenant la clé publique [pubRSA.pem]: ") or "pubRSA.pem"
+                public_key = PublicKeyRSA(src=src)
+                verification = public_key.verify(msg.encode("utf-8"), signature)
+                if (verification):
+                    print("Bonne Signature")
+                else:
+                    print("Mauvaise Signature")
+        else: # El Gamal
             pass
-        elif encryption_choice == 4:
-            pass
-        elif encryption_choice == 5:
-            pass
-            
-        msg:str=input("Donnez le message à {}: ".format("encrypter" if encryption_choice == 1 else "decrypter au format hex"))
-        passphrase:str=getpass("Donnez le mot secret: ")
-        iv=None
-        if encryption_choice==2:
-            iv=bytearray.fromhex(input("Donnez le vecteur d'initialisation au format HEX: "))
-        if algorithm_choice == 1:
-            encryptor=R
-        else:
-            pass # El Gamal 
-        if encryption_choice==1:
-            result,iv=encryptor.encrypt(msg)
-            print(f"Le message encrypté au format hex est: {result.hex()}")
-            print(f"Le vecteur d'initialisation au format hex est: {iv.hex()}")
-        else:
-            result = encryptor.decrypt(bytearray.fromhex(msg))    
-            print(f"Le message decrypté est: {result}")
-
 
     def menu(self):
         while True:
@@ -197,9 +202,9 @@ class SecurityToolbox:
     5.1. RSA
     5.2. Elgamal
     
-6. Communication sécurisée entre deux clients
 7. Quitter
 """)
+# 6. Communication sécurisée entre deux clients
             choice =0
             while choice not in range(1, 8):
                 choice = int(input("Choisissez votre choix: "))
@@ -217,10 +222,11 @@ class SecurityToolbox:
                     pass
                 elif choice == 7:
                     sys.exit(0)        
-                input("Press to continue...")
+                input("Appuyez quelque chose pour continuer...")
 
 if __name__ == "__main__":
     args = sys.argv[1:] # gets args from the user
     #Todo: Incorporate phase 1 & phase 2
     toolbox = SecurityToolbox()
-    toolbox.menu()
+    # toolbox.menu()
+    toolbox.start()

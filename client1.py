@@ -3,22 +3,21 @@ import socket
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives._serialization import Encoding, PublicFormat
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
+from dotenv import dotenv_values
 
-from asymmetric_encryption import DiffieHellmanExchange,DiffieHellmanExchange1024, DiffieHellmanExchange2048
+from asymmetric_encryption import DiffieHellmanExchange,DiffieHellmanExchange1024, DiffieHellmanExchange2048, DiffieHellmanExchangeFixed
 from symmetric_encryption import AESEncryption
-import time
 import threading
 class Connection:
     def __init__(self,port=1235,wait=True):
-        self.priv = DiffieHellmanExchange1024()
-        print("HI")
+        self.env=dotenv_values(".env")
+        self.priv = DiffieHellmanExchangeFixed(generator=int(self.env["p"],base=16),group_cardinality=int(self.env["g"]))
         self.receiving_socket=  socket.socket()
         receiving_port:int = port # our open port
         self.receiving_socket.bind(('', receiving_port))
         if wait:
             self.receive_connection()
         else:
-            print("HI")
             self.receiving_thread=threading.Thread(target=Connection.receive_connection,args=(self,))
 
     def create_session(self):
@@ -59,45 +58,27 @@ class Connection:
 
 
     def receive(self):
-        print("[LOG]: Test")
         while True:
             received=self.sending_socket.recv(1024)
-            print("[LOG]: "+ received.decode("ascii"))
             if received.decode("ascii")=="":
                 continue
             split_message=received.decode("ascii").split(':')
             enc=bytearray.fromhex(split_message[0])
             iv=bytearray.fromhex(split_message[1])
             self.encrypter.iv=iv
-            print("[IV]: "+iv.hex())
-            print("[ENC]: " + enc.hex())
             print(f"[Him]: {self.encrypter.decrypt(enc,iv)}")
 
     def send(self):
         while True:
-            message:str=input("[You]: ")
+            message:str=input("")
             enc,iv=self.encrypter.encrypt(message)
-            print("[IV]: "+ iv.hex())
-            print("[ENC]: " + enc.hex())
+            # print("[IV]: "+ iv.hex())
+            # print("[ENC]: " + enc.hex())
             sent_message=':'.join([enc.hex(),iv.hex()])
             self.sending_socket.send(sent_message.encode("ascii"))
 
 
-# --------Server ------------
-# s = socket.socket()
-
-# # binded port (for listening)
-# port = 12345               
-# s.bind(('', port)) # accept from any ip
-# s.listen(5)
-# print ("socket is listening")
-# while True:
-#     c,addr = s.accept() # accept a connection from addr
-#     print ("Got connection from", addr)
-#     time.sleep(3)
-#     c.send('Thank you for connection'.encode("utf-8"))
-#     c.close()
-#     break
-
 if __name__=="__main__":
+    """This should be started first
+    """
     connection = Connection(port=12367)

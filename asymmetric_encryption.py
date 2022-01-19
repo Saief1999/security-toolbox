@@ -6,6 +6,7 @@ from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.exceptions import InvalidSignature
 
 from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.backends import default_backend
 
 # from Crypto.PublicKey import ElGamal,RSA
 # key = ElGamal.generate(2048)
@@ -28,7 +29,7 @@ class PrivateKeyRSA(Transformer):
         else:
             self.private_key=rsa.generate_private_key(exponent,key_size)
 
-    def transform(self,msg:str):
+    def transform(self,msg:bytes):
         return self.private_key.sign(
     msg,
     padding.PSS(
@@ -38,7 +39,7 @@ class PrivateKeyRSA(Transformer):
     hashes.SHA256()
     )
 
-    def inverse_transform(self,msg:str):
+    def inverse_transform(self,msg:bytes):
         return self.private_key.decrypt(
         msg,
         padding.OAEP(
@@ -48,10 +49,10 @@ class PrivateKeyRSA(Transformer):
             )
         )
 
-    def sign(self,msg:str):
+    def sign(self,msg:bytes):
         return self.transform(msg)
 
-    def decrypt(self,msg:str):
+    def decrypt(self,msg:bytes):
         return self.inverse_transform(msg)
 
     def public_key(self):
@@ -72,7 +73,7 @@ class PrivateKeyRSA(Transformer):
             encryption_algorithm=serialization.NoEncryption()
         )
 
-        with open(dest,"w") as f:
+        with open(dest,"wb") as f:
             f.write(pem)
 
 class PrivateKeyRSA1024(PrivateKeyRSA):
@@ -99,7 +100,7 @@ class PublicKeyRSA(Transformer):
             self.public_key = public_key
         pass
 
-    def transform(self,msg:str):
+    def transform(self,msg:bytes):
         encoded=msg
         return self.public_key.encrypt(
             encoded,
@@ -110,7 +111,7 @@ class PublicKeyRSA(Transformer):
             )
         )
 
-    def inverse_transform(self,msg:str,signature:str):
+    def inverse_transform(self,msg:bytes,signature:bytes):
 
         try:
             self.public_key.verify(
@@ -126,17 +127,16 @@ class PublicKeyRSA(Transformer):
         except InvalidSignature:
             return False
 
-    def encrypt(self,msg:str):
+    def encrypt(self,msg:bytes):
         return self.transform(msg)
 
-    def verify(self,msg:str,*args,**kwargs):
+    def verify(self,msg:bytes,*args,**kwargs):
         return self.inverse_transform(msg,*args,**kwargs)
 
     def _import(self, src:str):
         with open(src, "rb") as key_file:
             public_key = serialization.load_pem_public_key(
-                key_file.read(),
-                password=None
+                key_file.read()
             )
         return public_key
 
@@ -146,7 +146,7 @@ class PublicKeyRSA(Transformer):
             format=serialization.PublicFormat.PKCS1 
         )
 
-        with open(dest,"w") as f:
+        with open(dest,"wb") as f:
             f.write(pem)
 
 
@@ -170,6 +170,13 @@ class DiffieHellmanExchange1024(DiffieHellmanExchange):
 class DiffieHellmanExchange2048(DiffieHellmanExchange):
     def __init__(self,generator=2):
         super().__init__(key_size=2048,generator=generator)
+
+class DiffieHellmanExchangeFixed(DiffieHellmanExchange):
+    def __init__(self,generator,group_cardinality):
+        params_numbers = dh.DHParameterNumbers(generator,group_cardinality)
+        self.parameters = params_numbers.parameters(default_backend())
+        self.private_key=self.parameters.generate_private_key()
+
     
 
 if __name__=="__main__":

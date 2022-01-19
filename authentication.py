@@ -8,7 +8,6 @@ from hashing import SHA256Hash
 from user import User
 
 
-# TODO : Hashing the passwords
 class Authentication:
     """Responsible For login/register
     """
@@ -17,9 +16,9 @@ class Authentication:
         self.dao = DatabaseAccess()
 
     def register(self):
-        firstname:str=self.get_field("First Name", self.is_field_not_empty, "First Name should not be empty!") 
-        lastname:str=self.get_field("Last Name", self.is_field_not_empty, "Last Name should not be empty!") 
-        email:str=self.get_field("Email",self.is_email_valid, "Email is Invalid!")
+        firstname:str=self.get_field("Prénom", self.is_field_not_empty, "Prénom ne doit pas être vide!") 
+        lastname:str=self.get_field("Nom", self.is_field_not_empty, "Nom ne doit pas être vide!") 
+        email:str=self.get_field("Email",self.is_email_valid, "Email est Invalide!")
         password:str=self.get_pass()
         password:str = str(SHA256Hash().hash(password).hex())
         # print(f"{firstname}:{lastname}:{email}:{password}")
@@ -53,13 +52,13 @@ class Authentication:
         """
         confirmed = False
         while (not confirmed):
-            password = getpass("Password: ")
+            password = getpass("Mot de passe: ")
             if (len(password) == 0):
-                print("Password should not be empty!")
+                print("Mot de passe ne doit pas être vide!")
                 continue
-            confirm_password = getpass("Confirm Password: ")
+            confirm_password = getpass("Confirmez Mot de passe: ")
             if (password != confirm_password):
-                print("Passwords don't match!")
+                print("Mots de passe ne sont pas les mêmes!")
             else:
                 confirmed=True
         return password
