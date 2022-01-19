@@ -2,11 +2,30 @@ from transformer import Transformer
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
-from encoders import Encoder
+from cryptography.exceptions import InvalidSignature
+
+from cryptography.hazmat.primitives import serialization
+
+# from Crypto.PublicKey import ElGamal,RSA
+# key = ElGamal.generate(2048)
+# key2 = RSA.generate(2048)
+# private_key = key.export_key()
+# public_key = key.publickey().export_key()
+
+
+# class PrivateKeyElGamal(Transformer):
+#     def __init__(self, key_size:int=2048):
+#         self.private_key = ElGamal.generate(key_size).export_key()
+    
+#     def transform(self, msg:str):
+#         return self.private_key
 
 class PrivateKeyRSA(Transformer):
-    def __init__(self,key_size,exponent=65537):
-        self.private_key=rsa.generate_private_key(exponent,key_size)
+    def __init__(self,key_size=None,exponent=65537, src=None):
+        if src is not None:
+            self.private_key = self._import(src)
+        else:
+            self.private_key=rsa.generate_private_key(exponent,key_size)
 
     def transform(self,msg:str):
         return self.private_key.sign(
@@ -37,6 +56,16 @@ class PrivateKeyRSA(Transformer):
     def public_key(self):
         return PublicKeyRSA(self.private_key.public_key())
 
+    def _import (self, src:str):
+        with open(src, "rb") as key_file:
+            private_key = serialization.load_pem_private_key(
+                key_file.read(),
+                password=None,
+            )
+        return private_key
+
+    def _export(self, dest:str):
+        pass
 
 class PrivateKeyRSA1024(PrivateKeyRSA):
     def __init__(self,exponent=65537):
@@ -71,15 +100,20 @@ class PublicKeyRSA(Transformer):
         )
 
     def inverse_transform(self,msg:str,signature:str):
-        return self.public_key.verify(
-            signature,
-            msg,
-            padding.PSS(
-                mgf=padding.MGF1(hashes.SHA256()),
-                salt_length=padding.PSS.MAX_LENGTH
-            ),
-            hashes.SHA256()
-        )
+
+        try:
+            self.public_key.verify(
+                signature,
+                msg,
+                padding.PSS(
+                    mgf=padding.MGF1(hashes.SHA256()),
+                    salt_length=padding.PSS.MAX_LENGTH
+                ),
+                hashes.SHA256()
+            )
+            return True
+        except InvalidSignature:
+            return False
 
     def encrypt(self,msg:str):
         return self.transform(msg)
@@ -89,8 +123,27 @@ class PublicKeyRSA(Transformer):
 
 
 if __name__=="__main__":
-    private_key=PrivateKeyRSA1024()
-    public_key=private_key.public_key()
-    msg= b"encrypted data"
-    encoded=public_key.encrypt(msg)
-    print(f"{encoded.hex()}:{private_key.decrypt(encoded)}")
+    pass
+    # private_key=PrivateKeyRSA1024()
+    # public_key=private_key.public_key()
+    # msg= b"encrypted data"
+    # encoded=public_key.encrypt(msg)
+    # print(f"{encoded.hex()}:{private_key.decrypt(encoded)}")
+
+    # Sigature test
+    # private_key = PrivateKeyRSA2048()
+    # public_key = private_key.public_key()
+    # msg = "This is going to be a signed message".encode("utf-8")
+    # signature:bytes = private_key.sign(msg)
+    # msg2 = "This is a bad message".encode("utf-8")
+    # print(public_key.verify(msg2, signature))
+
+    # Encryption/Decryption
+    # privA = PrivateKeyRSA4096()
+    # pubA = privA.public_key()
+    # privB = PrivateKeyRSA4096()
+    # pubB = privB.public_key()
+    # msg:bytes = "Mon message secret".encode("utf-8")
+    # encrypted = pubA.encrypt(msg)
+    # decrypted = privB.decrypt(encrypted)
+    # print(decrypted.decode("utf-8"))

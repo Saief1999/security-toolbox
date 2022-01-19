@@ -59,7 +59,7 @@ class TripleDESEncryption(Encryption):
         padded_msg = self.pad(msg)
         return (self.encryptor.update(padded_msg) + self.encryptor.finalize(),self.iv)
 
-    def inverse_transform(self, msg:bytes,iv:bytes)->str:
+    def inverse_transform(self, msg:bytes)->str:
         decrypted_msg =  (self.decryptor.update(msg) + self.decryptor.finalize())
         unpadded_msg = self.unpad(decrypted_msg)
         return unpadded_msg.decode("utf-8")
@@ -116,7 +116,7 @@ class AESEncryption(Encryption):
         padded_msg = self.pad(msg)
         return (self.encryptor.update(padded_msg) + self.encryptor.finalize(),self.iv)
 
-    def inverse_transform(self, msg:bytes, iv:bytes)->str:
+    def inverse_transform(self, msg:bytes)->str:
         decrypted_msg =  (self.decryptor.update(msg) + self.decryptor.finalize())
         unpadded_msg = self.unpad(decrypted_msg)
 

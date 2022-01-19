@@ -4,7 +4,7 @@ from pyclbr import Function
 import re
 from getpass import getpass
 from database_access import DatabaseAccess
-
+from hashing import SHA256Hash
 from user import User
 
 
@@ -17,12 +17,13 @@ class Authentication:
         self.dao = DatabaseAccess()
 
     def register(self):
-        print("Create a new Account to proceed:")
-        firstname=self.get_field("First Name", self.is_field_not_empty, "First Name should not be empty!") 
-        lastname=self.get_field("Last Name", self.is_field_not_empty, "Last Name should not be empty!") 
-        email=self.get_field("Email",self.is_email_valid, "Email is Invalid!")
-        password=self.get_pass()
-        print(f"{firstname}:{lastname}:{email}:{password}")
+        firstname:str=self.get_field("First Name", self.is_field_not_empty, "First Name should not be empty!") 
+        lastname:str=self.get_field("Last Name", self.is_field_not_empty, "Last Name should not be empty!") 
+        email:str=self.get_field("Email",self.is_email_valid, "Email is Invalid!")
+        password:str=self.get_pass()
+        password:str = str(SHA256Hash().hash(password).hex())
+        # print(f"{firstname}:{lastname}:{email}:{password}")
+        self.dao.create_user(User(firstname, lastname, email, password))
 
 
     def get_field(self, fieldname:str, validator:Function=lambda v :True, error:str=None)->any:
@@ -100,9 +101,9 @@ class Authentication:
         return len(field) != 0
 
     def login(self)->User|None:
-        print("Login to your account!")
-        email = input("Email: ")
-        password = getpass("Password: ")
+        email:str = input("Email: ")
+        password:str = getpass("Password: ")
+        password:str = str(SHA256Hash().hash(password).hex())
         user:User = self.dao.find_user(email, password)
         if (user is None):
             return None

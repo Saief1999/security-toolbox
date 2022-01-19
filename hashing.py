@@ -13,6 +13,10 @@ class Hashing(ABC):
         return digest.finalize()
     
 
+class SHA512Hash(Hashing):
+    def __init__(self):
+        super().__init__(hashes.SHA256())
+
 class SHA256Hash(Hashing):
     def __init__(self):
         super().__init__(hashes.SHA256())
