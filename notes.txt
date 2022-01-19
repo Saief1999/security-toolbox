@@ -1,0 +1,2 @@
+serveur : port + ip ( listen on this ip+port )
+client : ip + port_of_server + server_ip (connect to port+ip of server)

@@ -1,5 +1,6 @@
+from encryption import Encryption
 from transformer import Transformer
-from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives.asymmetric import rsa,dh
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.exceptions import InvalidSignature
@@ -65,7 +66,14 @@ class PrivateKeyRSA(Transformer):
         return private_key
 
     def _export(self, dest:str):
-        pass
+        pem = self.private_key.private_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PrivateFormat.TraditionalOpenSSL,
+            encryption_algorithm=serialization.NoEncryption()
+        )
+
+        with open(dest,"w") as f:
+            f.write(pem)
 
 class PrivateKeyRSA1024(PrivateKeyRSA):
     def __init__(self,exponent=65537):
@@ -84,8 +92,11 @@ class PrivateKeyRSA8192(PrivateKeyRSA):
         super().__init__(4096,exponent)
 
 class PublicKeyRSA(Transformer):
-    def __init__(self,public_key):
-        self.public_key=public_key
+    def __init__(self,public_key=None, src=None):
+        if src != None:
+            self.public_key = self._import(src)
+        else :
+            self.public_key = public_key
         pass
 
     def transform(self,msg:str):
@@ -121,6 +132,44 @@ class PublicKeyRSA(Transformer):
     def verify(self,msg:str,*args,**kwargs):
         return self.inverse_transform(msg,*args,**kwargs)
 
+    def _import(self, src:str):
+        with open(src, "rb") as key_file:
+            public_key = serialization.load_pem_public_key(
+                key_file.read(),
+                password=None
+            )
+        return public_key
+
+    def _export(self, dest:str):
+        pem = self.public_key.public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.PKCS1 
+        )
+
+        with open(dest,"w") as f:
+            f.write(pem)
+
+
+class DiffieHellmanExchange:
+    def __init__(self,key_size,generator=2):
+            self.private_key=dh.generate_parameters(generator=generator,key_size=key_size)
+    
+
+    def public_key(self):
+        return self.private_key.public_key()
+
+    def shared_key(self,public_key):
+        return self.private_key.exchange(public_key)
+
+
+class DiffieHellmanExchange1024(DiffieHellmanExchange):
+    def __init__(self,generator=2):
+        super().__init__(key_size=1024,generator=generator)
+
+class DiffieHellmanExchange2048(DiffieHellmanExchange):
+    def __init__(self,generator=2):
+        super().__init__(key_size=2048,generator=generator)
+    
 
 if __name__=="__main__":
     pass
