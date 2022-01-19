@@ -1,2 +1,12 @@
-serveur : port + ip ( listen on this ip+port )
-client : ip + port_of_server + server_ip (connect to port+ip of server)
+# serveur : port + ip ( listen on this ip+port )
+# client : ip + port_of_server + server_ip (connect to port+ip of server)
+
+
+    A                                                  B 
+    Client (connect + send) ----> g^a ----->  Serveur (accept + recv)  (g^ab)
+    Serveur (accept + recv) <---- g^b <-----  Client (connect + send)  (g^ab)
+
+    Client (send) --------> (M)shared_key ---- > Serveur (M)
+    Serveur(recv) <-------- (M')shared_key <--- Client (M')
+
+
