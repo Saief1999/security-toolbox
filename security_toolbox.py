@@ -1,6 +1,6 @@
 from getpass import getpass
 import sys
-from asymmetric_encryption import PrivateKeyRSA, PublicKeyRSA
+from asymmetric_encryption import ElGamalPrivateKey, ElGamalPublicKey, PrivateKeyRSA, PublicKeyRSA
 from authentication import Authentication
 from cracking import DictionaryCracker
 from encoders import Base64Encoder
@@ -50,7 +50,7 @@ class SecurityToolbox:
            msg=input("Donnez le message à coder: ")
            print(f"Le message codé à base 64: {encoder.encode(msg).decode('utf-8')}")
         elif choice == 2:
-            msg =input("Donnez le message à décoder")
+            msg =input("Donnez le message à décoder: ")
             print(f"Le message décodé de la base 64 est: {encoder.decode(msg.encode('utf-8'))}")
 
     def hashingMenu(self):
@@ -108,16 +108,16 @@ class SecurityToolbox:
         if encryption_choice==2:
             iv=bytearray.fromhex(input("Donnez le vecteur d'initialisation au format HEX: "))
         if algorithm_choice == 1:
-            encryptor=TripleDESEncryption(passphrase=passphrase,iv=iv)
+            encryptor=TripleDESEncryption(passphrase=passphrase)
             
         else:
-            encryptor=AESEncryption(passphrase=passphrase,iv=iv)
+            encryptor=AESEncryption(passphrase=passphrase)
         if encryption_choice==1:
             result,iv=encryptor.encrypt(msg)
             print(f"Le message encrypté au format hex est: {result.hex()}")
             print(f"Le vecteur d'initialisation au format hex est: {iv.hex()}")
         else:
-            result = encryptor.decrypt(bytearray.fromhex(msg))    
+            result = encryptor.decrypt(bytearray.fromhex(msg),iv)    
             print(f"Le message decrypté est: {result}")
 
     def asymmetricEncryptionMenu(self):
@@ -175,7 +175,42 @@ class SecurityToolbox:
                 else:
                     print("Mauvaise Signature")
         else: # El Gamal
-            pass
+            encryption_choice = 0
+            print("""
+1. Generation
+2. Encryptage
+3. Decryptage
+""")
+            while encryption_choice not in {1,2,3}:
+                encryption_choice=int(input("Choisissez votre choix: "))
+            if encryption_choice==1:
+
+                key_size = int(input("Donnez la taille de clé >= 1024: "))
+                private_key:ElGamalPrivateKey = ElGamalPrivateKey(key_size=key_size)
+                dest_priv=input("Donner le nom de fichier de la clé privé [privElGam.gam]: ") or "privElGam.gam"
+                private_key._export(dest=dest_priv)
+                print(f"Clé privé ElGamal exporté vers {dest_priv}")
+
+                public_key:ElGamalPublicKey = private_key.public_key()
+                dest_pub=input("Donner le nom de fichier de la clé publique [pubElGam.gam]: ") or "pubElGam.gam"
+                public_key._export(dest=dest_pub)
+                print(f"Clé publique ElGamal exporté vers {dest_pub}")
+
+            elif encryption_choice == 2:
+                msg:str=input("Donnez le message à encrypter: ")
+                src:str=input("Donnez le fichier contenant la clé publique [pubElGam.gam]: ") or "pubElGam.gam"
+                public_key = ElGamalPublicKey(src=src)
+                print(f"Le message encrypté au format est: {public_key.encrypt(msg)}")
+            elif encryption_choice == 3:
+                l = []
+                size = int(input("Donner le nombre de blocks[1]: ")) or 1
+                for _ in range (1, size+1):
+                    u = int(input("U: "))
+                    v = int(input("V: "))
+                    l.append([u,v])
+                src:str=input("Donnez le fichier contenant la clé privé [privElGam.gam]: ") or "privElGam.gam"
+                private_key = ElGamalPrivateKey(src=src)
+                print(f"Le message décrypté est: {private_key.decrypt(l)}") 
 
     def menu(self):
         while True:
@@ -229,4 +264,4 @@ if __name__ == "__main__":
     #Todo: Incorporate phase 1 & phase 2
     toolbox = SecurityToolbox()
     # toolbox.menu()
-    toolbox.start()
+    toolbox.menu()

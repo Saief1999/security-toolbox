@@ -1,26 +1,22 @@
+import math
+import os
+from random import Random
+
+import Crypto
+from Crypto.Math import _IntegerGMP
 from encryption import Encryption
 from transformer import Transformer
 from cryptography.hazmat.primitives.asymmetric import rsa,dh
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 from cryptography.exceptions import InvalidSignature
-
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
+from Crypto.Random import get_random_bytes
+from Crypto.PublicKey import ElGamal,RSA
 
-# from Crypto.PublicKey import ElGamal,RSA
-# key = ElGamal.generate(2048)
-# key2 = RSA.generate(2048)
-# private_key = key.export_key()
-# public_key = key.publickey().export_key()
-
-
-# class PrivateKeyElGamal(Transformer):
-#     def __init__(self, key_size:int=2048):
-#         self.private_key = ElGamal.generate(key_size).export_key()
-    
-#     def transform(self, msg:str):
-#         return self.private_key
+from Crypto.PublicKey import pubkey
+from utils import bytes_to_long, long_to_bytes
 
 class PrivateKeyRSA(Transformer):
     def __init__(self,key_size=None,exponent=65537, src=None):
@@ -143,7 +139,7 @@ class PublicKeyRSA(Transformer):
     def _export(self, dest:str):
         pem = self.public_key.public_bytes(
             encoding=serialization.Encoding.PEM,
-            format=serialization.PublicFormat.PKCS1 
+            format=serialization.PublicFormat.PKCS1
         )
 
         with open(dest,"wb") as f:
@@ -154,7 +150,7 @@ class DiffieHellmanExchange:
     def __init__(self,key_size,generator=2):
             self.parameters=dh.generate_parameters(generator=generator,key_size=key_size)
             self.private_key=self.parameters.generate_private_key()
-    
+
 
     def public_key(self):
         return self.private_key.public_key()
@@ -177,9 +173,99 @@ class DiffieHellmanExchangeFixed(DiffieHellmanExchange):
         self.parameters = params_numbers.parameters(default_backend())
         self.private_key=self.parameters.generate_private_key()
 
-    
+
+class ElGamalPrivateKey:
+    def __init__(self,key_size=None,randfunc=get_random_bytes, src=None):
+        if src is not None:
+            self.priv, self.key_size= self._import(src)
+        else:
+            self.priv=ElGamal.generate(bits=key_size,randfunc=randfunc)
+            self.key_size=key_size
+    def public_key(self):
+        return ElGamalPublicKey(self.priv.publickey(),key_size=self.key_size)
+
+    def decrypt(self,E):
+        result=[]
+        block_size=self.key_size//16
+        for X in E:
+            result.append(long_to_bytes(self.priv._decrypt(X)))
+        return b''.join(result).decode("ascii")
+
+    def _export(self,dest:str):
+        with open(dest,"w") as f:
+            f.write(f"p={self.priv.p}\n")
+            f.write(f"g={self.priv.g}\n")
+            f.write(f"y={self.priv.y}\n")
+            f.write(f"x={self.priv.x}\n")
+            f.write(f"ks={self.key_size}\n")
+            
+    def _import(self,src:str):
+        with open(src, "r") as f:
+            p = int(f.readline().rstrip().split('=')[1])
+            g = int(f.readline().rstrip().split('=')[1])
+            y = int(f.readline().rstrip().split('=')[1])
+            x = int(f.readline().rstrip().split('=')[1])
+            ks=int(f.readline().rstrip().split('=')[1])
+            
+            return (ElGamal.construct((p,g,y,x)),ks)
+class ElGamalPublicKey:
+    def __init__(self,publickey=None,key_size=None, src=None):
+        if src is not None:
+            self.pub,self.key_size = self._import(src)
+        else:
+            self.pub=publickey
+            self.key_size=key_size
+        self.b=int.from_bytes(os.urandom(self.key_size),byteorder="big")
+
+    def encrypt(self, msg:str):
+        encoded=msg.encode("ascii")
+        X=[]
+        result=[]
+        block_size=self.key_size//16
+        for i in range(len(encoded)//block_size):
+            result.append(self.pub._encrypt(bytes_to_long(encoded[i*block_size:(i+1)*block_size]),K=self.b))
+        if len(encoded)%block_size>0:
+            result.append(self.pub._encrypt(bytes_to_long(encoded[(len(encoded)//block_size)*block_size:]),K=self.b))
+        return result
+
+    def _export(self,dest:str):
+        with open(dest,"w") as f:
+            f.write(f"p={self.pub.p}\n")
+            f.write(f"g={self.pub.g}\n")
+            f.write(f"y={self.pub.y}\n")
+            f.write(f"ks={self.key_size}\n")
+            
+    def _import(self,src:str):
+        with open(src, "r") as f:
+            p = int(f.readline().rstrip().split('=')[1])
+            g = int(f.readline().rstrip().split('=')[1])
+            y = int(f.readline().rstrip().split('=')[1])
+            ks=int(f.readline().rstrip().split('=')[1])
+            return (ElGamal.construct((p,g,y)),ks)
+
 
 if __name__=="__main__":
+    #def _encrypt(self, M, K):
+    # priv = ElGamal.generate(512,randfunc=get_random_bytes)
+    # pub=priv.publickey()
+    # u,v=pub._encrypt(546,K=4)
+    # print(priv._decrypt((u,v)))
+    privB=ElGamalPrivateKey(512)
+    y = privB.priv.y # pub
+    x = privB.priv.x # priv
+    g = privB.priv.g # generator of the cyclic group
+    p = privB.priv.p # order of the underlying prime field 
+    #privC=ElGamal.construct((p,g,y,x))
+    #print(privC._decrypt(privC.publickey()._encrypt(55,K=7)))
+    pubB=privB.public_key()
+    privC=ElGamalPrivateKey(512)
+    pubC=privC.public_key()
+    message="123456789"*500
+    enc=pubB.encrypt(message)
+    Y=privB.decrypt(enc)
+    print(Y==message)
+
+    #print(int.from_bytes(("123"*1000).encode("utf-8"),byteorder="little").to_bytes(20000,byteorder="little").decode("utf-8"))
     pass
     # private_key=PrivateKeyRSA1024()
     # public_key=private_key.public_key()

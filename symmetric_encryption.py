@@ -30,12 +30,9 @@ class TripleDESEncryption(Encryption):
     Message size : Needs to be multiple of Block Size (padding using PKCS7)
     """
 
-    def __init__(self, passphrase: str = None, iv=None):
+    def __init__(self, passphrase: str = None):
         # self.key = b'12345689'
         self.key = self.key_stretch(passphrase)
-        if iv is None:
-            iv = os.urandom(8)
-        self.iv = iv
         # Error with iv ( Invalid Size )
         # algorithm = algorithms.TripleDES(self.key)
         # print(f"Block Size: {algorithm.block_size}")
@@ -50,15 +47,15 @@ class TripleDESEncryption(Encryption):
         )
         return ckdf.derive(key)
 
-    def transform(self, msg: str) -> bytes:
-        self.cipher = Cipher(algorithms.TripleDES(self.key), modes.CBC(self.iv), backend=default_backend())
+    def transform(self, msg: str,init_v=os.urandom(8)) -> bytes:
+        self.cipher = Cipher(algorithms.TripleDES(self.key), modes.CBC(init_v), backend=default_backend())
         self.encryptor = self.cipher.encryptor()  # Used to encrypt
 
         padded_msg = self.pad(msg)
-        return (self.encryptor.update(padded_msg) + self.encryptor.finalize(), self.iv)
+        return (self.encryptor.update(padded_msg) + self.encryptor.finalize(), init_v)
 
-    def inverse_transform(self, msg: bytes) -> str:
-        self.cipher = Cipher(algorithms.TripleDES(self.key), modes.CBC(self.iv), backend=default_backend())
+    def inverse_transform(self, msg: bytes,init_v:bytes) -> str:
+        self.cipher = Cipher(algorithms.TripleDES(self.key), modes.CBC(init_v), backend=default_backend())
         self.decryptor = self.cipher.decryptor()  # Used to decrypt
         decrypted_msg = (self.decryptor.update(msg) + self.decryptor.finalize())
         unpadded_msg = self.unpad(decrypted_msg)
