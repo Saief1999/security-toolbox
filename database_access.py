@@ -54,7 +54,7 @@ class DatabaseAccess(metaclass=SingletonMeta):
         result = self.users.find_one({ "email": email, "password": password })
         if result == None :
             return None
-        return User(result["firstname"], result["lastname"], result["email"])
+        return User(firstname=result["firstname"], lastname=result["lastname"], email=result["email"])
 
 if __name__ == "__main__":
     dao = DatabaseAccess()

@@ -1,4 +1,8 @@
 from __future__ import annotations
+import math,random
+from multiprocessing import context
+import smtplib, ssl
+
 
 from pyclbr import Function
 import re
@@ -6,6 +10,7 @@ from getpass import getpass
 from database_access import DatabaseAccess
 from hashing import SHA256Hash
 from user import User
+from dotenv import dotenv_values
 
 
 class Authentication:
@@ -14,6 +19,7 @@ class Authentication:
 
     def __init__(self) -> None:
         self.dao = DatabaseAccess()
+        self.config = dotenv_values(".env")
 
     def register(self):
         firstname:str=self.get_field("Prénom", self.is_field_not_empty, "Prénom ne doit pas être vide!") 
@@ -22,7 +28,8 @@ class Authentication:
         password:str=self.get_pass()
         password:str = str(SHA256Hash().hash(password).hex())
         # print(f"{firstname}:{lastname}:{email}:{password}")
-        self.dao.create_user(User(firstname, lastname, email, password))
+        user = User(firstname, lastname, email, password)
+        self.dao.create_user(user)
 
 
     def get_field(self, fieldname:str, validator:Function=lambda v :True, error:str=None)->any:
@@ -108,7 +115,30 @@ class Authentication:
             return None
         return user
 
+    def genereate_code(self):
+        digits = "0123456789"
+        code=""
+        for i in range(8):
+            code += digits[math.floor(random.random()*10)]
+        return code
+    
+    def send_verification_code(self, user:User, code:str):
+        context = ssl.create_default_context()
+        message=f"""
+Subject: Verification de compte
+
+Hello {user.firstname} {user.lastname}!
+Voici votre code de verification {code}
+"""
+        with smtplib.SMTP(self.config["smtp_server"],int(self.config["smtp_port"])) as server:
+            server.starttls(context=context)
+            server.login(self.config["mailer_email"], self.config["mailer_password"])
+            server.sendmail(self.config["mailer_email"], user.email, message)
+            print(f"Code envoyé vers {user.email}")
+
 
 if __name__ == "__main__":
     authentication:Authentication = Authentication()
     authentication.register()
+
+  

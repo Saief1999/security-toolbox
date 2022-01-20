@@ -32,7 +32,16 @@ class SecurityToolbox:
                     print("Identifiants invalides!")
                     choice=0
                     continue
-                print(f"Bienvenu {user.firstname} {user.lastname}!")
+                else:
+                    code = self.authentication.genereate_code()
+                    self.authentication.send_verification_code(user, code)
+                    while (True):
+                        input_code = input("Donner votre code: ")
+                        if (input_code == code):
+                            break
+                        else:
+                            print("Code Invalide!") 
+                print(f"Bienvenue {user.firstname} {user.lastname}!")
                 next = self.menu
             next()
 
@@ -264,4 +273,4 @@ if __name__ == "__main__":
     #Todo: Incorporate phase 1 & phase 2
     toolbox = SecurityToolbox()
     # toolbox.menu()
-    toolbox.menu()
+    toolbox.start()
