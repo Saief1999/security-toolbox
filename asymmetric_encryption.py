@@ -184,7 +184,7 @@ class ElGamalPrivateKey:
     def public_key(self):
         return ElGamalPublicKey(self.priv.publickey(),key_size=self.key_size)
 
-    def decrypt(self,E):
+    def decrypt(self,E)->str:
         result=[]
         block_size=self.key_size//16
         for X in E:
