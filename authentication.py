@@ -131,7 +131,9 @@ Hello {user.firstname} {user.lastname}!
 Voici votre code de verification {code}
 """
         with smtplib.SMTP(self.config["smtp_server"],int(self.config["smtp_port"])) as server:
+            server.ehlo()
             server.starttls(context=context)
+            server.ehlo()
             server.login(self.config["mailer_email"], self.config["mailer_password"])
             server.sendmail(self.config["mailer_email"], user.email, message)
             print(f"Code envoyé vers {user.email}")
