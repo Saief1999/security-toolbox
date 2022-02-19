@@ -38,18 +38,22 @@ classDiagram
 
 ### Hashing, Encoding & Symmetric encryption
 
+- `Transformer` : An abstract class defining two main methods
+  - `transform` : an operation on an input
+  - `inverse_tranform` : the inverse of that operation
+
 ```mermaid
 classDiagram
 
     class Transformer{
-        +transform()*
-        +inverse_transform()*
+        +transform(**kwargs)*
+        +inverse_transform(**kwargs)*
     }
 
     Transformer <|-- Encoder
     class Encoder {
-        +encode()
-        +decode()
+        +encode(str msg) bytes
+        +decode(bytes msg) str
     }
 
     Encoder <|-- Base32Encoder
@@ -62,8 +66,8 @@ classDiagram
 
     Transformer <|-- Encryption
     class Encryption {
-        +encrypt()
-        +decrypt()
+        +encrypt(str msg)* bytes
+        +decrypt(str msg)* bytes
     }
 
     Encryption <|-- TripleDESEncryption
@@ -75,7 +79,7 @@ classDiagram
     }
     
     class Hashing {
-    	+hash()*
+    	+hash(str msg)* bytes
     }
     
     Hashing <|-- SHA512Hash
@@ -96,6 +100,67 @@ classDiagram
 ```
 
 ### Asymmetric encryption
+
+#### RSA
+
+```mermaid
+classDiagram
+
+class Transformer {
+    +transform()*
+    +inverse_transform()*
+}
+
+Transformer <|-- PrivateKeyRSA
+class PrivateKeyRSA {
+	+sign(bytes msg) bytes
+	+decrypt(bytes msg) bytes
+	+_import(str src)
+	+_export(str dest)
+}
+
+PrivateKeyRSA <|-- PrivateKeyRSA1024
+class PrivateKeyRSA1024 {
+	
+}
+
+PrivateKeyRSA <|-- PrivateKeyRSA2048
+class PrivateKeyRSA2048 {
+	
+}
+
+PrivateKeyRSA <|-- PrivateKeyRSA4096
+class PrivateKeyRSA4096 {
+	
+}
+
+PrivateKeyRSA <|-- PrivateKeyRSA8192
+class PrivateKeyRSA8192 {
+	
+}
+Transformer <|-- PublicKeyRSA
+class PublicKeyRSA {
+	+encrypt(bytes msg) bytes
+	+verify (bytes msg, bytes signature) bool
+	+_import(str dest)
+	+_export(str dest)
+}
+
+```
+
+#### Diffie Hellman
+
+```mermaid
+```
+
+
+
+#### El Gamal
+
+```mermaid
+```
+
+
 
 ## Features
 
