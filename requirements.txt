@@ -1,0 +1,4 @@
+pymongo==4.0.1
+python-dotenv==0.19.2
+pycryptodome==3.12
+cryptography==36.0.1

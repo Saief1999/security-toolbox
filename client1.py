@@ -5,7 +5,7 @@ from cryptography.hazmat.primitives._serialization import Encoding, PublicFormat
 from cryptography.hazmat.primitives.serialization import load_pem_public_key
 from dotenv import dotenv_values
 
-from asymmetric_encryption import DiffieHellmanExchange,DiffieHellmanExchange1024, DiffieHellmanExchange2048, DiffieHellmanExchangeFixed
+from asymmetric_encryption import DiffieHellmanExchangeFixed
 from symmetric_encryption import AESEncryption
 import threading
 class Connection:

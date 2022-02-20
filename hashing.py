@@ -1,6 +1,6 @@
-from transformer import Transformer
 from cryptography.hazmat.primitives import hashes
-from abc import ABC,abstractmethod
+from abc import ABC
+
 class Hashing(ABC):
     def __init__(self,hash_function):
         self.hash_function=hash_function
