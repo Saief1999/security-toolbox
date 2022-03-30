@@ -52,8 +52,9 @@ class ClientConnection:
             
         # if accept_decision == 'N':
         #     return
-        print(f"Received connection from: {krb.authGSSClientUserName(self.context)}")
         self.finish_receiving_connection()
+        print(f"Received connection from: {krb.authGSSClientUserName(self.context)}")
+
         
     def finish_receiving_connection(self):
         self.initiate_server() # initiate server to receive messages
