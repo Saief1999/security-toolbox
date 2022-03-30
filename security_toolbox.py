@@ -8,11 +8,12 @@ from hashing import MD5Hash, SHA1Hash, SHA256Hash
 from symmetric_encryption import AESEncryption, TripleDESEncryption
 from user import User
 from dotenv import dotenv_values
+import kerberos;
 
 class SecurityToolbox:
     def __init__(self, email=None, password=None) -> None:
         self.authentication:Authentication = Authentication()
-        self.config = dotenv_values(".env")
+        self.config = dotenv_values("..env")
     
     def start(self):
         choice=0
@@ -270,7 +271,8 @@ class SecurityToolbox:
 
 if __name__ == "__main__":
     args = sys.argv[1:] # gets args from the user
+    kerberos.checkPassword("ramizouari","rami98420806","","RAMIZOUARI.TN")
     #Todo: Incorporate phase 1 & phase 2
     toolbox = SecurityToolbox()
-    # toolbox.menu()
-    toolbox.start()
+    toolbox.menu()
+    #toolbox.start()

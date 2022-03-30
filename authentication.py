@@ -18,7 +18,7 @@ class Authentication:
 
     def __init__(self) -> None:
         self.dao = DatabaseAccess()
-        self.config = dotenv_values(".env")
+        self.config = dotenv_values("..env")
 
     def register(self):
         firstname:str=self.get_field("Prénom", self.is_field_not_empty, "Prénom ne doit pas être vide!") 
