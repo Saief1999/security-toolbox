@@ -46,6 +46,10 @@ class SecurityToolbox:
                             print("Code Invalide!") 
                 print(f"Bienvenue {user.firstname} {user.lastname}!")
                 next = self.menu
+            elif choice == 3:
+                name=input("Donner votre hôte: ")
+                port=int(input("Donner votre port: "))
+                connection=client.ClientConnection(name,port)
             next()
 
     def encodingMenu(self):
@@ -275,5 +279,4 @@ if __name__ == "__main__":
     args = sys.argv[1:] # gets args from the user
     #Todo: Incorporate phase 1 & phase 2
     toolbox = SecurityToolbox()
-    toolbox.menu()
-    #toolbox.start()
+    toolbox.start()
