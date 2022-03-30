@@ -8,7 +8,8 @@ from hashing import MD5Hash, SHA1Hash, SHA256Hash
 from symmetric_encryption import AESEncryption, TripleDESEncryption
 from user import User
 from dotenv import dotenv_values
-import kerberos;
+import kerberos
+import client
 
 class SecurityToolbox:
     def __init__(self, email=None, password=None) -> None:
@@ -20,7 +21,8 @@ class SecurityToolbox:
         while choice not in {1, 2}:
             print("""
 1. Enregistrement
-2. Authentification       
+2. Authentification    
+3. Chat   
 """)
             choice = int(input("Choisissez votre choix: "))
             if choice == 1:

@@ -1,12 +1,12 @@
-# serveur : port + ip ( listen on this ip+port )
-# client : ip + port_of_server + server_ip (connect to port+ip of server)
 
 
-    A                                                  B 
-    Client (connect + send) ----> g^a ----->  Serveur (accept + recv)  (g^ab)
-    Serveur (accept + recv) <---- g^b <-----  Client (connect + send)  (g^ab)
-
-    Client (send) --------> (M)shared_key ---- > Serveur (M)
-    Serveur(recv) <-------- (M')shared_key <--- Client (M')
-
-
+(venv) [ramizouari@fedora security-toolbox]$ python client.py ramizouari.tn 10000
+Choose connection type [send/receive]: send
+Host: saiefzneti.tn
+Port: 9000
+Connecting to saiefzneti.tn:9000
+Connection established to saiefzneti.tn
+[Him]: hello
+Hi
+[You]: Hi
+[Him]: hello
