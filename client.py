@@ -152,4 +152,4 @@ class ClientConnection:
 if __name__ == "__main__":
     """This should be started first
     """
-    connection = ClientConnection(host=sys.argv[1],port=int(sys.argv[2]), wait=False)
+    connection = ClientConnection(host=sys.argv[1],port=int(sys.argv[2]))

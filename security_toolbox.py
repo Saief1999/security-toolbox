@@ -273,7 +273,6 @@ class SecurityToolbox:
 
 if __name__ == "__main__":
     args = sys.argv[1:] # gets args from the user
-    kerberos.checkPassword("ramizouari","rami98420806","","RAMIZOUARI.TN")
     #Todo: Incorporate phase 1 & phase 2
     toolbox = SecurityToolbox()
     toolbox.menu()
