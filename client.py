@@ -53,12 +53,11 @@ class ClientConnection:
         # if accept_decision == 'N':
         #     return
         self.finish_receiving_connection()
-        print(f"Received connection from: {krb.authGSSClientUserName(self.context)}")
 
         
     def finish_receiving_connection(self):
         self.initiate_server() # initiate server to receive messages
-
+        print(f"Received connection from: {krb.authGSSClientUserName(self.context)}")
         self.receiving_thread = threading.Thread(target=ClientConnection.receive, args=(self,)) # define receiving thread
         self.receiving_thread.start() # start re
 
