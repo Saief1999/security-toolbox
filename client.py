@@ -52,7 +52,7 @@ class ClientConnection:
             
         # if accept_decision == 'N':
         #     return
-        print(f"Received connection from: {self.client_ip}")
+        print(f"Received connection from: {krb.authGSSClientUserName(self.context)}")
         self.finish_receiving_connection()
         
     def finish_receiving_connection(self):
@@ -80,7 +80,7 @@ class ClientConnection:
         self.sending_thread = threading.Thread(target=ClientConnection.receive, args=(self,))
         self.sending_thread.start()
 
-        print(f"Connection established to {krb.authGSSServerUserName(self.context)}")
+        print(f"Connection established to {host}")
         self.send()
 
     """
