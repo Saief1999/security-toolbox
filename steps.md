@@ -18,4 +18,4 @@
 4. Open `kadmin` with user `securitytools/admin`
 5. Open keytab `/etc/krb5.keytab` with `ktutil` and list entries
 6. Show the diagram
-7. Launch the application and enjoy your success :house:
+7. Launch the application and enjoy your success :happy:
