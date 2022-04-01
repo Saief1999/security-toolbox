@@ -255,7 +255,7 @@ sequenceDiagram
    	par Prepare Client
    		saiefzneti.tn->>saiefzneti.tn: authGSSClientInit(saiefzneti.tn, securitytools@ramizouari.tn)
  		saiefzneti.tn->>Ticket Granting Server(TGS): Ask for ticket for ramizouari.tn
- 		Ticket Granting Server(TGS)->> saiefzneti.tn: Ticket for to access ramizouari.tn
+ 		Ticket Granting Server(TGS)->> saiefzneti.tn: Ticket to access ramizouari.tn
      end
      par Prepare Server
  		ramizouari.tn->>ramizouari.tn: authGSSClientInit(securitytools@ramizouari.tn)
