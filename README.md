@@ -12,6 +12,9 @@
 stateDiagram-v2
     [*] --> Register
     [*] --> Authenticate 
+    [*] --> Chat
+    Chat --> send
+    Chat --> receive
     Authenticate --> 2_factor_auth: email&pass
     2_factor_auth --> Menu: code
     Menu --> Hashing
@@ -234,6 +237,52 @@ class ElGamalPublicKey {
 }
 
 ```
+
+### Kerberos General Flow
+
+```mermaid
+
+sequenceDiagram
+	saiefzneti.tn->>Kerberos Authentication Server (KAS): kinit
+	Kerberos Authentication Server (KAS)->> saiefzneti.tn: Ticket grating ticket
+    ramizouari.tn->>Kerberos Authentication Server (KAS): kinit
+    Kerberos Authentication Server (KAS)->> ramizouari.tn: Ticket grating ticket
+
+```
+
+ ```mermaid
+ sequenceDiagram
+   	par Prepare Client
+   		saiefzneti.tn->>saiefzneti.tn: authGSSClientInit(saiefzneti.tn, securitytools@ramizouari.tn)
+ 		saiefzneti.tn->>Ticket Granting Server(TGS): Ask for ticket for ramizouari.tn
+ 		Ticket Granting Server(TGS)->> saiefzneti.tn: Ticket for to access ramizouari.tn
+     end
+     par Prepare Server
+ 		ramizouari.tn->>ramizouari.tn: authGSSClientInit(securitytools@ramizouari.tn)
+ 	end
+ 	alt Authentication
+ 		saiefzneti.tn->>saiefzneti.tn: authGSSClientStep(context) [ prepare ticket to send it]
+ 		saiefzneti.tn->>ramizouari.tn: send ticket
+ 		ramizouari.tn->>ramizouari.tn: authGSSServerStep(context, ticket)[ process ticket]
+ 		ramizouari.tn->>saiefzneti.tn: feedback
+ 	end
+ ```
+
+
+
+```mermaid
+sequenceDiagram
+loop Chat
+	saiefzneti.tn->>saiefzneti.tn: encode(message)
+	saiefzneti.tn->>saiefzneti.tn: authGSSClientWrap(context, encoded_message)
+	saiefzneti.tn->>ramizouari.tn: send_message
+	ramizouari.tn->>ramizouari.tn: receive_message
+    ramizouari.tn->>ramizouari.tn: authGSSClientUnwrap(context, encoded_encrypted_message)
+    ramizouari.tn->>ramizouari.tn: decode(encoded_message)
+end
+```
+
+
 
 ## Features
 
